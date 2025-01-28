@@ -1,0 +1,1 @@
+# OdooAPI-Generador-etiquetas-QR
