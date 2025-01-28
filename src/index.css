@@ -1,0 +1,97 @@
+body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      margin-bottom: 5px;
+      font-weight: bold;
+      width: 150px;
+      text-align: right;
+      padding-right: 10px;
+    }
+
+    input[type="text"],
+    textarea {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      background-color: #C0392B; /* Pantone 200C */
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
+      margin-left: 150px;
+    }
+
+    button:hover {
+      background-color: #943126; /* Darker shade of Pantone 200C for hover */
+    }
+
+    .qr-code-container {
+      margin-top: 20px;
+      text-align: center;
+      border: 1px solid #eee;
+      padding: 20px;
+      border-radius: 5px;
+    }
+
+    .qr-code-container img {
+      margin-bottom: 10px;
+      max-width: 100%;
+    }
+
+    .qr-code-container p {
+      word-break: break-all;
+      margin-bottom: 10px;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .print-section, .print-section * {
+        visibility: visible;
+      }
+      .print-section {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+
+      .large-label {
+        width: 110mm;
+        height: 50mm;
+        padding: 10mm;
+        box-sizing: border-box;
+        page-break-after: always; /* Start a new page for each label */
+      }
+
+      .small-label {
+        width: 10mm;
+        height: 5mm;
+        padding: 1mm;
+        box-sizing: border-box;
+        font-size: 8px; /* Adjust font size for small labels */
+        page-break-after: always; /* Start a new page for each label */
+      }
+      /* Ensure only one label per page */
+      @page {
+        size: auto; /* Use printer default, or specify '110mm 50mm', '10mm 5mm' if needed */
+        margin: 0mm; /* Set margins to none */
+      }
+    }
