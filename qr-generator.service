@@ -1,0 +1,14 @@
+[Unit]
+Description=Servicio Generador de Etiquetas QR
+After=network.target
+
+[Service]
+Type=simple
+User=node
+Group=node
+ExecStart=/opt/OdooAPI-Generador-etiquetas-QR/start-service.sh
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target 
