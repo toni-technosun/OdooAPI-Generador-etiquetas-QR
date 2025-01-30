@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import ImageCapture from './components/ImageCapture';
-import { initializeDB, addRMARecord, addLogisticsRecord } from './db/duckdb';
+import RecordViewer from './components/RecordViewer';
+import { initializeDB, addRMARecord, addLogisticsRecord, getRecentRMARecords, getRecentLogisticsRecords } from './db/database';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Logística');
@@ -19,20 +20,53 @@ function App() {
   const [validationError, setValidationError] = useState('');
   const [bulkType, setBulkType] = useState('');
   const [customBulkNumber, setCustomBulkNumber] = useState('');
-  const [imageData, setImageData] = useState(null);
-  const [imageType, setImageType] = useState(null);
+  const [images, setImages] = useState([]);
   const [dbInitialized, setDbInitialized] = useState(false);
+  const [recentRecords, setRecentRecords] = useState([]);
+  const [serverStatus, setServerStatus] = useState({ isConnected: false, error: null, loading: true });
 
   useEffect(() => {
     const init = async () => {
-      const success = await initializeDB();
-      setDbInitialized(success);
-      if (!success) {
-        console.error('Error initializing database');
+      try {
+        await initializeDB();
+        setServerStatus({ isConnected: true, error: null, loading: false });
+        await loadRecentRecords();
+      } catch (error) {
+        console.error('Error de conexión:', error);
+        setServerStatus({ 
+          isConnected: false, 
+          error: error.message || 'Error al conectar con el servidor', 
+          loading: false 
+        });
       }
     };
     init();
   }, []);
+
+  const loadRecentRecords = async () => {
+    if (!serverStatus.isConnected) return;
+    
+    try {
+      const records = activeTab === 'RMA' 
+        ? await getRecentRMARecords()
+        : await getRecentLogisticsRecords();
+      setRecentRecords(records);
+    } catch (error) {
+      console.error('Error al cargar registros:', error);
+      setServerStatus(prev => ({
+        ...prev,
+        error: 'Error al cargar los registros'
+      }));
+    }
+  };
+
+  useEffect(() => {
+    loadRecentRecords();
+  }, [activeTab]);
+
+  const handleImageCapture = (updatedImages) => {
+    setImages(updatedImages);
+  };
 
   const validateRMAForm = () => {
     if (!rma.trim()) {
@@ -63,6 +97,10 @@ function App() {
       setValidationError('Por favor, selecciona al menos un tamaño de etiqueta');
       return false;
     }
+    if (images.length === 0) {
+      setValidationError('Por favor, añade al menos una imagen');
+      return false;
+    }
     setValidationError('');
     return true;
   };
@@ -74,32 +112,35 @@ function App() {
     return '';
   };
 
-  const handleImageCapture = (data, type) => {
-    setImageData(data);
-    setImageType(type);
-  };
-
   const generateQrCode = async () => {
     if (activeTab === 'RMA' && !validateRMAForm()) {
       return;
     }
 
     try {
+      const currentDate = new Date().toLocaleString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }).replace(/:/g, '-').replace(/\//g, '-');
+
       let value;
       if (activeTab === 'Logística') {
         const serials = serialNumbers.split('\n').filter(line => line.trim() !== '').join(':');
-        value = `BULK:V1:${sku}:${serials}`;
+        value = `BULK:V1:${sku}:${serials}:[${currentDate}]`;
         await addLogisticsRecord({ sku, serialNumbers: serials });
       } else {
-        value = `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos`;
+        value = `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos:[${currentDate}]`;
         await addRMARecord({
           rma,
           isPallet,
           packagingType,
           packagingCondition,
           bulkCount: getBulkNumber(),
-          imageData,
-          imageType
+          images: images
         });
       }
 
@@ -109,8 +150,11 @@ function App() {
         errorCorrectionLevel: 'H'
       });
       setQrCodeDataUrl(dataUrl);
+      
+      // Recargar registros después de agregar uno nuevo
+      await loadRecentRecords();
     } catch (err) {
-      console.error(err);
+      console.error('Error al generar el código QR:', err);
     }
   };
 
@@ -132,11 +176,52 @@ function App() {
     }
   };
 
+  if (serverStatus.loading) {
+    return (
+      <div style={{ 
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh'
+      }}>
+        <p>Conectando con el servidor...</p>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: '20px' }}>
+      {serverStatus.error && (
+        <div style={{ 
+          backgroundColor: '#ffebee', 
+          color: '#c62828', 
+          padding: '15px', 
+          borderRadius: '4px',
+          marginBottom: '20px'
+        }}>
+          <strong>Error: </strong>{serverStatus.error}
+          <br />
+          <small>Asegúrate de que el servidor esté ejecutándose en http://localhost:3001</small>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '20px', gap: '10px', flexWrap: 'wrap' }}>
-        <button onClick={() => setActiveTab('Logística')} style={{ fontWeight: activeTab === 'Logística' ? 'bold' : 'normal' }}>Logística</button>
-        <button onClick={() => setActiveTab('RMA')} style={{ fontWeight: activeTab === 'RMA' ? 'bold' : 'normal' }}>RMA</button>
+        <button 
+          onClick={() => setActiveTab('Logística')} 
+          style={{ fontWeight: activeTab === 'Logística' ? 'bold' : 'normal' }}
+          disabled={!serverStatus.isConnected}
+        >
+          Logística
+        </button>
+        <button 
+          onClick={() => setActiveTab('RMA')} 
+          style={{ fontWeight: activeTab === 'RMA' ? 'bold' : 'normal' }}
+          disabled={!serverStatus.isConnected}
+        >
+          RMA
+        </button>
       </div>
 
       {activeTab === 'Logística' && (
@@ -201,13 +286,23 @@ function App() {
               {labelSizes.large && (
                 <div className="qr-code-container print-section large-label">
                   <img src={qrCodeDataUrl} alt="QR Code Large" style={{ maxWidth: '100%' }} />
-                  <p style={{ wordBreak: 'break-all' }}>{`BULK:V1:${sku}:${serialNumbers.split('\n').filter(line => line.trim() !== '').join(':')}`}</p>
+                  <p style={{ wordBreak: 'break-all' }}>
+                    {activeTab === 'Logística' ? 
+                      `BULK:V1:${sku}:${serialNumbers.split('\n').filter(line => line.trim() !== '').join(':')}:[${new Date().toLocaleString('es-ES').replace(/:/g, '-').replace(/\//g, '-')}]` :
+                      `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos:[${new Date().toLocaleString('es-ES').replace(/:/g, '-').replace(/\//g, '-')}]`
+                    }
+                  </p>
                 </div>
               )}
               {labelSizes.small && (
                 <div className="qr-code-container print-section small-label" style={{ marginTop: '10px' }}>
                   <img src={qrCodeDataUrl} alt="QR Code Small" style={{ maxWidth: '100%' }} />
-                  <p style={{ wordBreak: 'break-all' }}>{`BULK:V1:${sku}:${serialNumbers.split('\n').filter(line => line.trim() !== '').join(':')}`}</p>
+                  <p style={{ wordBreak: 'break-all' }}>
+                    {activeTab === 'Logística' ? 
+                      `BULK:V1:${sku}:${serialNumbers.split('\n').filter(line => line.trim() !== '').join(':')}:[${new Date().toLocaleString('es-ES').replace(/:/g, '-').replace(/\//g, '-')}]` :
+                      `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos:[${new Date().toLocaleString('es-ES').replace(/:/g, '-').replace(/\//g, '-')}]`
+                    }
+                  </p>
                 </div>
               )}
               <button style={{ marginTop: '10px' }} onClick={handlePrint}>
@@ -215,6 +310,7 @@ function App() {
               </button>
             </div>
           )}
+          <RecordViewer records={recentRecords} type="Logística" />
         </div>
       )}
 
@@ -444,13 +540,23 @@ function App() {
               {labelSizes.large && (
                 <div className="qr-code-container print-section large-label">
                   <img src={qrCodeDataUrl} alt="QR Code Large" style={{ maxWidth: '100%' }} />
-                  <p style={{ wordBreak: 'break-all' }}>{`RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos`}</p>
+                  <p style={{ wordBreak: 'break-all' }}>
+                    {activeTab === 'Logística' ? 
+                      `BULK:V1:${sku}:${serialNumbers.split('\n').filter(line => line.trim() !== '').join(':')}:[${new Date().toLocaleString('es-ES').replace(/:/g, '-').replace(/\//g, '-')}]` :
+                      `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos:[${new Date().toLocaleString('es-ES').replace(/:/g, '-').replace(/\//g, '-')}]`
+                    }
+                  </p>
                 </div>
               )}
               {labelSizes.small && (
                 <div className="qr-code-container print-section small-label" style={{ marginTop: '10px' }}>
                   <img src={qrCodeDataUrl} alt="QR Code Small" style={{ maxWidth: '100%' }} />
-                  <p style={{ wordBreak: 'break-all' }}>{`RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos`}</p>
+                  <p style={{ wordBreak: 'break-all' }}>
+                    {activeTab === 'Logística' ? 
+                      `BULK:V1:${sku}:${serialNumbers.split('\n').filter(line => line.trim() !== '').join(':')}:[${new Date().toLocaleString('es-ES').replace(/:/g, '-').replace(/\//g, '-')}]` :
+                      `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos:[${new Date().toLocaleString('es-ES').replace(/:/g, '-').replace(/\//g, '-')}]`
+                    }
+                  </p>
                 </div>
               )}
               <button style={{ marginTop: '10px' }} onClick={handlePrint}>
@@ -458,6 +564,7 @@ function App() {
               </button>
             </div>
           )}
+          <RecordViewer records={recentRecords} type="RMA" />
         </div>
       )}
     </div>

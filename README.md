@@ -40,9 +40,27 @@ Para ejecutar el servidor de desarrollo:
     npm run dev
     ```
 
-    El servidor se iniciará y estará disponible en:
-    - Local: `http://localhost:5173` (o el siguiente puerto disponible)
-    - Red: `http://<ip-del-servidor>:5173` (accesible desde otros dispositivos en la red)
+    El servidor se iniciará y mostrará las URLs disponibles, por ejemplo:
+    ```
+    ➜  Local:   http://localhost:5174/
+    ➜  Network: http://192.168.10.71:5174/
+    ```
+    Usa la URL de "Network" para acceder desde otros dispositivos en la red.
+
+3. **Iniciar el servidor backend:**
+    ```bash
+    cd server
+    npm install
+    npm run dev
+    ```
+
+    El servidor backend se iniciará y mostrará las URLs disponibles, por ejemplo:
+    ```
+    Servidor corriendo en:
+    - Local: http://localhost:3001
+    - Red: http://192.168.10.71:3001
+    ```
+    Los otros dispositivos en la red deben usar la URL de "Red".
 
 ### Instalación como Servicio en el Servidor
 
@@ -77,7 +95,7 @@ sudo systemctl start qr-generator
 sudo systemctl status qr-generator
 ```
 
-La aplicación estará disponible en `http://<ip-del-servidor>:5000`
+La aplicación estará disponible en la IP del servidor en el puerto 5000, por ejemplo: `http://192.168.10.71:5000`
 
 ### Comandos útiles para gestionar el servicio
 

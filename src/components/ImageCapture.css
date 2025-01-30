@@ -1,0 +1,150 @@
+.image-capture-container {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.image-capture-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: center;
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+
+/* Estilos base para todos los botones con iconos */
+.button-like,
+.camera-button,
+.camera-container button,
+.image-preview .delete-button {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+    flex: 0 0 48px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #909297;
+    border: none !important;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Estilos para los SVG */
+.button-like svg,
+.camera-button svg,
+.camera-container button svg,
+.image-preview .delete-button svg {
+    width: 24px !important;
+    height: 24px !important;
+    flex: none !important;
+}
+
+/* Hover states */
+.button-like:hover,
+.camera-button:hover,
+.image-preview .delete-button:hover {
+    background-color: #7a7c82;
+    transform: scale(1.05);
+}
+
+/* Estados específicos */
+.camera-button.active {
+    background-color: #dc2626;
+}
+
+.camera-container button {
+    background-color: #22c55e;
+}
+
+/* Mensaje de error */
+.error-message {
+    color: #c0392b;
+    background-color: #ffebee;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Contenedor de la cámara */
+.camera-container {
+    margin-top: 15px;
+    text-align: center;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.camera-container video {
+    margin-bottom: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    max-width: 100%;
+    width: 400px;
+    background-color: #000;
+}
+
+/* Cuadrícula de imágenes */
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Contenedor de imagen individual */
+.image-preview {
+    position: relative;
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease-in-out;
+}
+
+.image-preview:hover {
+    transform: translateY(-2px);
+}
+
+.image-preview img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 0;
+}
+
+/* Botón de eliminar */
+.image-preview .delete-button {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: #ef4444;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.image-preview .delete-button svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.image-preview .delete-button:hover {
+    background-color: #dc2626;
+} 
