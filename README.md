@@ -1,6 +1,28 @@
 # Generador de Etiquetas Logísticas QR
 
-Esta es una aplicación frontend para generar etiquetas logísticas con códigos QR.
+Esta es una aplicación frontend para generar etiquetas logísticas y RMA con códigos QR.
+
+## Características
+
+### Generales
+* Interfaz con pestañas para diferentes tipos de etiquetas (Logística y RMA)
+* Genera códigos QR para etiquetas logísticas y RMA
+* Proporciona opciones para diferentes tamaños de etiqueta (110x50mm y 10x5mm)
+* Salida optimizada para impresión, mostrando solo el código QR y la etiqueta al imprimir
+* Interfaz optimizada para pantallas táctiles
+* Validación de campos obligatorios
+* Autofoco en campos principales para facilitar el uso con lectores de códigos de barras
+
+### Etiquetas Logísticas
+* Entrada de SKU con soporte para lector de códigos de barras
+* Campo para múltiples números de serie
+* Cambio automático al campo de números de serie después de escanear el SKU
+
+### Etiquetas RMA
+* Campo para número de RMA
+* Selector de estado de pallet (Sí/No)
+* Selector de tipo de embalaje (Original/No Original/Sin embalaje)
+* Selector de estado del embalaje (Bueno/Regular/Malo)
 
 ## Primeros Pasos
 
@@ -8,17 +30,19 @@ Esta es una aplicación frontend para generar etiquetas logísticas con códigos
 
 Para ejecutar el servidor de desarrollo:
 
-1.  **Instalar dependencias:**
-    ```sh
+1. **Instalar dependencias:**
+    ```bash
     npm install
     ```
 
-2.  **Iniciar el servidor de desarrollo:**
-    ```sh
+2. **Iniciar el servidor de desarrollo:**
+    ```bash
     npm run dev
     ```
 
-    Esto iniciará el servidor de desarrollo de Vite. Abre tu navegador y navega a la URL proporcionada en la consola (normalmente `http://localhost:5173`).
+    El servidor se iniciará y estará disponible en:
+    - Local: `http://localhost:5173` (o el siguiente puerto disponible)
+    - Red: `http://<ip-del-servidor>:5173` (accesible desde otros dispositivos en la red)
 
 ### Instalación como Servicio en el Servidor
 
@@ -72,56 +96,23 @@ sudo systemctl restart qr-generator
 sudo systemctl stop qr-generator
 ```
 
-### Ejecutando en un Servidor (para Producción o Acceso en Almacén)
+## Uso con Lector de Códigos de Barras
 
-Para ejecutar la aplicación en un servidor después de clonarla, sigue estos pasos:
+La aplicación está optimizada para su uso con lectores de códigos de barras:
 
-1.  **Instalar dependencias:**
-    Navega al directorio del proyecto en la terminal del servidor y ejecuta:
-    ```sh
-    npm install
-    ```
+1. En la pestaña "Logística":
+   - Al cargar la página, el cursor se posiciona automáticamente en el campo SKU
+   - Después de escanear el SKU, el cursor salta automáticamente al campo de números de serie
 
-2.  **Construir la aplicación:**
-    Ejecuta el comando de construcción para generar archivos estáticos:
-    ```sh
-    npm run build
-    ```
-    Esto creará una carpeta `dist` que contiene los recursos estáticos.
-
-3.  **Servir los archivos estáticos:**
-    Puedes usar un servidor estático simple como `serve` para servir la aplicación. Si no tienes `serve` instalado globalmente, instálalo primero:
-    ```sh
-    npm install -g serve
-    ```
-    Luego, sirve la aplicación desde el directorio `dist`:
-    ```sh
-    serve dist
-    ```
-    `serve` mostrará una URL (ej., `http://localhost:5000` o `http://<your-server-ip>:5000`).
-
-4.  **Acceder a la aplicación:**
-    Abre un navegador web y ve a la URL proporcionada por el comando `serve`.
-
-### Notas Importantes para el Despliegue en Servidor
-
-*   **Puerto:** `serve` normalmente se ejecuta en el puerto 5000 por defecto. Puedes cambiar el puerto usando la opción `-p`, ej., `serve dist -p 8080`.
-*   **Proceso en Segundo Plano:** Para un funcionamiento continuo, especialmente en un entorno de tipo producción, es posible que desees ejecutar `serve` como un proceso en segundo plano. Utiliza herramientas como `nohup` o `systemd` dependiendo de tu entorno de servidor.
-*   **Servidores Web Alternativos:** Para configuraciones más robustas, considera usar servidores web como Nginx o Apache para servir los archivos estáticos en la carpeta `dist`. Estos ofrecen características más avanzadas para despliegues en producción.
-
-## Características
-
-*   Genera códigos QR para etiquetas logísticas.
-*   Permite la entrada de SKU y números de serie.
-*   Proporciona opciones para diferentes tamaños de etiqueta (110x50mm y 10x5mm).
-*   Salida optimizada para impresión, mostrando solo el código QR y la etiqueta al imprimir.
+2. En la pestaña "RMA":
+   - Al cambiar a esta pestaña, el cursor se posiciona automáticamente en el campo RMA
 
 ## Tecnologías Utilizadas
 
-*   React
-*   Vite
-*   qrcode.react (o qrcode)
-*   CSS
+* React
+* Vite
+* qrcode.react
+* CSS
 
 ## Requisitos del Sistema
 

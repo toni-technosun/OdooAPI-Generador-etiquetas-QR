@@ -35,7 +35,9 @@ body {
       color: white;
       cursor: pointer;
       margin-top: 10px;
-      margin-left: 150px;
+      margin-left: 0;
+      flex: 1 1 auto;
+      max-width: 150px;
     }
 
     button:hover {
@@ -82,16 +84,40 @@ body {
       }
 
       .small-label {
-        width: 10mm;
-        height: 5mm;
-        padding: 1mm;
+        width: 57mm;
+        height: 32mm;
+        padding: 2mm;
         box-sizing: border-box;
-        font-size: 8px; /* Adjust font size for small labels */
-        page-break-after: always; /* Start a new page for each label */
+        font-size: 10px; /* Ajustado el tamaño de fuente para mejor legibilidad */
+        page-break-after: always;
       }
+
+      .small-label img {
+        max-width: 28mm; /* Ajustado para que el QR sea proporcional al nuevo tamaño */
+        height: auto;
+      }
+
       /* Ensure only one label per page */
       @page {
         size: auto; /* Use printer default, or specify '110mm 50mm', '10mm 5mm' if needed */
         margin: 0mm; /* Set margins to none */
+      }
+    }
+
+    @media (max-width: 600px) {
+      .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .form-group label {
+        width: auto;
+        text-align: left;
+        padding-right: 0;
+      }
+
+      input[type="text"],
+      textarea {
+        width: 100%;
       }
     }
