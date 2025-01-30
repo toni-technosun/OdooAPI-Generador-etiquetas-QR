@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
+import ImageCapture from './components/ImageCapture';
+import { initializeDB, addRMARecord, addLogisticsRecord } from './db/duckdb';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Logística');
@@ -17,6 +19,20 @@ function App() {
   const [validationError, setValidationError] = useState('');
   const [bulkType, setBulkType] = useState('');
   const [customBulkNumber, setCustomBulkNumber] = useState('');
+  const [imageData, setImageData] = useState(null);
+  const [imageType, setImageType] = useState(null);
+  const [dbInitialized, setDbInitialized] = useState(false);
+
+  useEffect(() => {
+    const init = async () => {
+      const success = await initializeDB();
+      setDbInitialized(success);
+      if (!success) {
+        console.error('Error initializing database');
+      }
+    };
+    init();
+  }, []);
 
   const validateRMAForm = () => {
     if (!rma.trim()) {
@@ -58,6 +74,11 @@ function App() {
     return '';
   };
 
+  const handleImageCapture = (data, type) => {
+    setImageData(data);
+    setImageType(type);
+  };
+
   const generateQrCode = async () => {
     if (activeTab === 'RMA' && !validateRMAForm()) {
       return;
@@ -68,8 +89,18 @@ function App() {
       if (activeTab === 'Logística') {
         const serials = serialNumbers.split('\n').filter(line => line.trim() !== '').join(':');
         value = `BULK:V1:${sku}:${serials}`;
+        await addLogisticsRecord({ sku, serialNumbers: serials });
       } else {
         value = `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos`;
+        await addRMARecord({
+          rma,
+          isPallet,
+          packagingType,
+          packagingCondition,
+          bulkCount: getBulkNumber(),
+          imageData,
+          imageType
+        });
       }
 
       const dataUrl = await QRCode.toDataURL(value, {
@@ -395,6 +426,12 @@ function App() {
                   />
                 </div>
               </div>
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Imagen:</label>
+            <div className="input-container">
+              <ImageCapture onImageCapture={handleImageCapture} />
             </div>
           </div>
 

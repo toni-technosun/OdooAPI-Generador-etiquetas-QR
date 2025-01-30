@@ -32,6 +32,8 @@ export async function initializeDB() {
                 packaging_type TEXT,
                 packaging_condition TEXT,
                 bulk_count INTEGER,
+                image_data TEXT,
+                image_type TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -55,11 +57,27 @@ export async function initializeDB() {
 
 export async function addRMARecord(rmaData) {
     try {
-        const { rma, isPallet, packagingType, packagingCondition, bulkCount } = rmaData;
+        const { rma, isPallet, packagingType, packagingCondition, bulkCount, imageData, imageType } = rmaData;
         await connection.query(`
-            INSERT INTO rma_records (rma_number, has_pallet, packaging_type, packaging_condition, bulk_count)
-            VALUES (?, ?, ?, ?, ?)
-        `, [rma, isPallet === 'pallet', packagingType, packagingCondition, parseInt(bulkCount)]);
+            INSERT INTO rma_records (
+                rma_number, 
+                has_pallet, 
+                packaging_type, 
+                packaging_condition, 
+                bulk_count,
+                image_data,
+                image_type
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [
+            rma, 
+            isPallet === 'pallet', 
+            packagingType, 
+            packagingCondition, 
+            parseInt(bulkCount),
+            imageData,
+            imageType
+        ]);
         return true;
     } catch (error) {
         console.error('Error adding RMA record:', error);
