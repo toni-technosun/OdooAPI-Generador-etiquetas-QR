@@ -15,6 +15,8 @@ function App() {
   const [packagingType, setPackagingType] = useState('');
   const [packagingCondition, setPackagingCondition] = useState('');
   const [validationError, setValidationError] = useState('');
+  const [bulkType, setBulkType] = useState('');
+  const [customBulkNumber, setCustomBulkNumber] = useState('');
 
   const validateRMAForm = () => {
     if (!rma.trim()) {
@@ -33,12 +35,27 @@ function App() {
       setValidationError('Por favor, selecciona el estado del embalaje');
       return false;
     }
+    if (!bulkType) {
+      setValidationError('Por favor, selecciona el número de bultos');
+      return false;
+    }
+    if (bulkType === 'custom' && !customBulkNumber.trim()) {
+      setValidationError('Por favor, especifica el número de bultos');
+      return false;
+    }
     if (!labelSizes.large && !labelSizes.small) {
       setValidationError('Por favor, selecciona al menos un tamaño de etiqueta');
       return false;
     }
     setValidationError('');
     return true;
+  };
+
+  const getBulkNumber = () => {
+    if (bulkType === 'one') return '1';
+    if (bulkType === 'two') return '2';
+    if (bulkType === 'custom') return customBulkNumber;
+    return '';
   };
 
   const generateQrCode = async () => {
@@ -52,7 +69,7 @@ function App() {
         const serials = serialNumbers.split('\n').filter(line => line.trim() !== '').join(':');
         value = `BULK:V1:${sku}:${serials}`;
       } else {
-        value = `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}`;
+        value = `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos`;
       }
 
       const dataUrl = await QRCode.toDataURL(value, {
@@ -179,160 +196,204 @@ function App() {
             </div>
           )}
           <div className="form-group">
-            <label htmlFor="rma">RMA:</label>
-            <input
-              type="text"
-              id="rma"
-              value={rma}
-              onChange={(e) => setRma(e.target.value)}
-              autoFocus={activeTab === 'RMA'}
-            />
+            <label>RMA:</label>
+            <div className="input-container">
+              <input
+                type="text"
+                id="rma"
+                value={rma}
+                onChange={(e) => setRma(e.target.value)}
+                autoFocus={activeTab === 'RMA'}
+              />
+            </div>
           </div>
           <div className="form-group">
             <label>¿Viene en pallet?</label>
-            <div style={{ display: 'flex', gap: '20px' }}>
-              <div>
-                <input
-                  type="radio"
-                  id="pallet"
-                  name="pallet"
-                  value="pallet"
-                  checked={isPallet === 'pallet'}
-                  onChange={(e) => setIsPallet(e.target.value)}
-                />
-                <label htmlFor="pallet" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  Sí
-                </label>
-              </div>
-              <div>
-                <input
-                  type="radio"
-                  id="no_pallet"
-                  name="pallet"
-                  value="no_pallet"
-                  checked={isPallet === 'no_pallet'}
-                  onChange={(e) => setIsPallet(e.target.value)}
-                />
-                <label htmlFor="no_pallet" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  No
-                </label>
+            <div className="input-container">
+              <div style={{ display: 'flex', gap: '20px' }}>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="pallet"
+                    name="pallet"
+                    value="pallet"
+                    checked={isPallet === 'pallet'}
+                    onChange={(e) => setIsPallet(e.target.value)}
+                  />
+                  <label htmlFor="pallet">Sí</label>
+                </div>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="no_pallet"
+                    name="pallet"
+                    value="no_pallet"
+                    checked={isPallet === 'no_pallet'}
+                    onChange={(e) => setIsPallet(e.target.value)}
+                  />
+                  <label htmlFor="no_pallet">No</label>
+                </div>
               </div>
             </div>
           </div>
           <div className="form-group">
             <label>Tipo de Embalaje:</label>
-            <div style={{ display: 'flex', gap: '20px' }}>
-              <div>
-                <input
-                  type="radio"
-                  id="original"
-                  name="packaging"
-                  value="original"
-                  checked={packagingType === 'original'}
-                  onChange={(e) => setPackagingType(e.target.value)}
-                />
-                <label htmlFor="original" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  Original
-                </label>
-              </div>
-              <div>
-                <input
-                  type="radio"
-                  id="no_original"
-                  name="packaging"
-                  value="no_original"
-                  checked={packagingType === 'no_original'}
-                  onChange={(e) => setPackagingType(e.target.value)}
-                />
-                <label htmlFor="no_original" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  No Original
-                </label>
-              </div>
-              <div>
-                <input
-                  type="radio"
-                  id="sin_embalaje"
-                  name="packaging"
-                  value="sin_embalaje"
-                  checked={packagingType === 'sin_embalaje'}
-                  onChange={(e) => setPackagingType(e.target.value)}
-                />
-                <label htmlFor="sin_embalaje" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  Sin embalaje
-                </label>
+            <div className="input-container">
+              <div style={{ display: 'flex', gap: '20px' }}>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="original"
+                    name="packaging"
+                    value="original"
+                    checked={packagingType === 'original'}
+                    onChange={(e) => setPackagingType(e.target.value)}
+                  />
+                  <label htmlFor="original">Original</label>
+                </div>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="no_original"
+                    name="packaging"
+                    value="no_original"
+                    checked={packagingType === 'no_original'}
+                    onChange={(e) => setPackagingType(e.target.value)}
+                  />
+                  <label htmlFor="no_original">No Original</label>
+                </div>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="sin_embalaje"
+                    name="packaging"
+                    value="sin_embalaje"
+                    checked={packagingType === 'sin_embalaje'}
+                    onChange={(e) => setPackagingType(e.target.value)}
+                  />
+                  <label htmlFor="sin_embalaje">Sin embalaje</label>
+                </div>
               </div>
             </div>
           </div>
           <div className="form-group">
             <label>Estado del embalaje:</label>
-            <div style={{ display: 'flex', gap: '20px' }}>
-              <div>
-                <input
-                  type="radio"
-                  id="bueno"
-                  name="condition"
-                  value="Bueno"
-                  checked={packagingCondition === 'Bueno'}
-                  onChange={(e) => setPackagingCondition(e.target.value)}
-                />
-                <label htmlFor="bueno" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  Bueno
-                </label>
-              </div>
-              <div>
-                <input
-                  type="radio"
-                  id="regular"
-                  name="condition"
-                  value="Regular"
-                  checked={packagingCondition === 'Regular'}
-                  onChange={(e) => setPackagingCondition(e.target.value)}
-                />
-                <label htmlFor="regular" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  Regular
-                </label>
-              </div>
-              <div>
-                <input
-                  type="radio"
-                  id="malo"
-                  name="condition"
-                  value="Malo"
-                  checked={packagingCondition === 'Malo'}
-                  onChange={(e) => setPackagingCondition(e.target.value)}
-                />
-                <label htmlFor="malo" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  Malo
-                </label>
+            <div className="input-container">
+              <div style={{ display: 'flex', gap: '20px' }}>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="bueno"
+                    name="condition"
+                    value="Bueno"
+                    checked={packagingCondition === 'Bueno'}
+                    onChange={(e) => setPackagingCondition(e.target.value)}
+                  />
+                  <label htmlFor="bueno">Bueno</label>
+                </div>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="regular"
+                    name="condition"
+                    value="Regular"
+                    checked={packagingCondition === 'Regular'}
+                    onChange={(e) => setPackagingCondition(e.target.value)}
+                  />
+                  <label htmlFor="regular">Regular</label>
+                </div>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="malo"
+                    name="condition"
+                    value="Malo"
+                    checked={packagingCondition === 'Malo'}
+                    onChange={(e) => setPackagingCondition(e.target.value)}
+                  />
+                  <label htmlFor="malo">Malo</label>
+                </div>
               </div>
             </div>
           </div>
           <div className="form-group">
             <label>Tamaño de Etiqueta:</label>
-            <div style={{ display: 'flex', gap: '20px' }}>
-              <div>
-                <input
-                  type="checkbox"
-                  id="largeLabelRMA"
-                  name="large"
-                  checked={labelSizes.large}
-                  onChange={handleLabelSizeChange}
-                />
-                <label htmlFor="largeLabelRMA" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  110x50mm
-                </label>
+            <div className="input-container">
+              <div style={{ display: 'flex', gap: '20px' }}>
+                <div className="radio-option">
+                  <input
+                    type="checkbox"
+                    id="largeLabelRMA"
+                    name="large"
+                    checked={labelSizes.large}
+                    onChange={handleLabelSizeChange}
+                  />
+                  <label htmlFor="largeLabelRMA">110x50mm</label>
+                </div>
+                <div className="radio-option">
+                  <input
+                    type="checkbox"
+                    id="smallLabelRMA"
+                    name="small"
+                    checked={labelSizes.small}
+                    onChange={handleLabelSizeChange}
+                  />
+                  <label htmlFor="smallLabelRMA">57x32mm</label>
+                </div>
               </div>
-              <div>
-                <input
-                  type="checkbox"
-                  id="smallLabelRMA"
-                  name="small"
-                  checked={labelSizes.small}
-                  onChange={handleLabelSizeChange}
-                />
-                <label htmlFor="smallLabelRMA" style={{ fontWeight: 'normal', marginLeft: '5px' }}>
-                  57x32mm
-                </label>
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Número de Bultos:</label>
+            <div className="input-container">
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="one_bulk"
+                    name="bulk"
+                    value="one"
+                    checked={bulkType === 'one'}
+                    onChange={(e) => {
+                      setBulkType(e.target.value);
+                      setCustomBulkNumber('');
+                    }}
+                  />
+                  <label htmlFor="one_bulk">1 Bulto</label>
+                </div>
+                <div className="radio-option">
+                  <input
+                    type="radio"
+                    id="two_bulk"
+                    name="bulk"
+                    value="two"
+                    checked={bulkType === 'two'}
+                    onChange={(e) => {
+                      setBulkType(e.target.value);
+                      setCustomBulkNumber('');
+                    }}
+                  />
+                  <label htmlFor="two_bulk">2 Bultos</label>
+                </div>
+                <div className="radio-option" style={{ display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="radio"
+                    id="custom_bulk"
+                    name="bulk"
+                    value="custom"
+                    checked={bulkType === 'custom'}
+                    onChange={(e) => setBulkType(e.target.value)}
+                  />
+                  <label htmlFor="custom_bulk">Más de 2:</label>
+                  <input
+                    type="number"
+                    min="3"
+                    style={{ width: '60px', marginLeft: '10px' }}
+                    value={customBulkNumber}
+                    onChange={(e) => setCustomBulkNumber(e.target.value)}
+                    disabled={bulkType !== 'custom'}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -346,13 +407,13 @@ function App() {
               {labelSizes.large && (
                 <div className="qr-code-container print-section large-label">
                   <img src={qrCodeDataUrl} alt="QR Code Large" style={{ maxWidth: '100%' }} />
-                  <p style={{ wordBreak: 'break-all' }}>{`RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}`}</p>
+                  <p style={{ wordBreak: 'break-all' }}>{`RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos`}</p>
                 </div>
               )}
               {labelSizes.small && (
                 <div className="qr-code-container print-section small-label" style={{ marginTop: '10px' }}>
                   <img src={qrCodeDataUrl} alt="QR Code Small" style={{ maxWidth: '100%' }} />
-                  <p style={{ wordBreak: 'break-all' }}>{`RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}`}</p>
+                  <p style={{ wordBreak: 'break-all' }}>{`RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos`}</p>
                 </div>
               )}
               <button style={{ marginTop: '10px' }} onClick={handlePrint}>
