@@ -129,8 +129,10 @@ function App() {
 
       let value;
       if (activeTab === 'Logística') {
-        const serials = serialNumbers.split('\n').filter(line => line.trim() !== '').join(':');
-        value = `BULK:V1:${sku}:${serials}:[${currentDate}]`;
+        const serialsArray = serialNumbers.split('\n').filter(line => line.trim() !== '');
+        const serials = serialsArray.join(':');
+        const serialCount = serialsArray.length.toString().padStart(2, '0');
+        value = `BULK:V1:${sku}:${serialCount}:${serials}:[${currentDate}]`;
         await addLogisticsRecord({ sku, serialNumbers: serials });
       } else {
         value = `RMA:V1:${rma}:${isPallet === 'pallet' ? 'Pallet' : 'No Pallet'}:${packagingType === 'original' ? 'Original' : packagingType === 'no_original' ? 'No Original' : 'Sin embalaje'}:${packagingCondition}:${getBulkNumber()} Bultos:[${currentDate}]`;
